@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <canvas id="can"></canvas>
+    <script>
+      // koch curve
+      var canvas = document.getElementById('can');
+      var size = 2000;
+      canvas.width = size;
+      canvas.height = size;
+      var ctx = canvas.getContext('2d');
+
+      fractal(ctx, {x: 0, y: size/2}, {x:size, y:size/2}, {x:0, y:0});
+
+      function fractal(ctx, point1, point2, point3){
+        var newPoints = drawSingleCurve(ctx, point1, point2, point3);
+        if (Math.abs(newPoints[0].x - newPoints[1].x) < 1) return;
+        fractal(ctx, newPoints[0], newPoints[2], newPoints[1]);
+        fractal(ctx, newPoints[1], newPoints[2], newPoints[0]);
+        line(ctx, newPoints[0], newPoints[1], 'white', 2);
+      }
+
+      function drawSingleCurve(ctx, point1, point2, point3){
+        line(ctx, point1, point2);
+        var new1 = findThirdPoint(point1, point2);
+        var new2 = find2ThirdsPoint(point1, point2);
+        // todo figure out how to make the triangles always go up
+        var new3 = thirdPoint(new1, new2);
+        if (pointInTriangle(new3, point1, point2, point3)){
+          new3 = thirdPoint2(new1, new2);
+        }
+        line(ctx, new1, new3);
+        line(ctx, new2, new3);
+        return [new1, new2, new3];
+      }
+
+      function line(ctx, point1, point2, color, width){
+        color = color || 'black';
+        width = width || 1;
+        ctx.lineWidth = width;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(point1.x, point1.y);
+        ctx.lineTo(point2.x, point2.y);
+        ctx.stroke();
+      }
+
+      function findThirdPoint(point1, point2){
+        var x = (2.0 / 3.0) * point1.x + (1.0 / 3.0) * point2.x;
+        var y = (2.0 / 3.0) * point1.y + (1.0 / 3.0) * point2.y;
+        return {x, y}
+      }
+      function find2ThirdsPoint(point1, point2){
+        var x = (1.0 / 3.0) * point1.x + (2.0 / 3.0) * point2.x;
+        var y = (1.0 / 3.0) * point1.y + (2.0 / 3.0) * point2.y;
+        return {x, y};
+      }
+      function findMidPoint(point1, point2){
+        var x = (1.0 / 2.0) * point1.x + (1.0 / 2.0) * point2.x;
+        var y = (1.0 / 2.0) * point1.y + (1.0 / 2.0) * point2.y;
+        return {x, y};
+      }
+      function distance(point1, point2){
+        return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
+      }
+      function thirdPoint(p1, p2){
+        // http://stackoverflow.com/a/2862412/2598
+        var s60 = Math.sin(60 * Math.PI / 180.0);
+        var c60 = Math.cos(60 * Math.PI / 180.0);
+
+        return {
+          x: c60 * (p1.x - p2.x) - s60 * (p1.y - p2.y) + p2.x,
+          y: s60 * (p1.x - p2.x) + c60 * (p1.y - p2.y) + p2.y
+        };
+      }
+      function thirdPoint2(p1, p2){
+        // http://stackoverflow.com/a/2862412/2598
+        var s60 = -Math.sin(60 * Math.PI / 180.0);
+        var c60 = Math.cos(60 * Math.PI / 180.0);
+
+        return {
+          x: c60 * (p1.x - p2.x) - s60 * (p1.y - p2.y) + p2.x,
+          y: s60 * (p1.x - p2.x) + c60 * (p1.y - p2.y) + p2.y
+        };
+      }
+
+      // http://stackoverflow.com/a/2049593/2598
+      function sign(p1, p2, p3) {
+          return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+      }
+
+      function pointInTriangle(pt, v1, v2, v3) {
+          var b1, b2, b3;
+
+          b1 = sign(pt, v1, v2) < 0.0;
+          b2 = sign(pt, v2, v3) < 0.0;
+          b3 = sign(pt, v3, v1) < 0.0;
+
+          return ((b1 == b2) && (b2 == b3));
+      }
+    </script>
+  </body>
+</html>
